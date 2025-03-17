@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">SimpleMobileAuth</string>
+    <string name="instructions_text">Enter your email address below</string>
+    <string name="button_authenticate">Authenticate</string>
+    <string name="status_text">Status will appear here</string>
+    <string name="email_hint">Email Address</string>
+</resources>
