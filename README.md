@@ -88,6 +88,9 @@ This project is a mobile application that implements secure device authenticatio
 - Extend support for iOS using Swift and LocalAuthentication.
 - Store trusted devices dynamically in a database.
 
+- Video demo
+ https://youtu.be/OF_7RqJjepM
+
 ## License
 This project is licensed under the MIT License. Feel free to contribute!
 
