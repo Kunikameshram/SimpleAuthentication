@@ -8,5 +8,8 @@
     <color name="dusty_pink">#b56576</color>
     <color name="rose">#e56b6f</color>
     <color name="yolk">#DBC7BD</color>
+    <color name="light_blue">#5AB2FF</color>
+    <color name="primary_blue">#3D8BFF</color>
+    <color name="dark_gray">#444444</color>
 
 </resources>

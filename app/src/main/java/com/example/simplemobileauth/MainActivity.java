@@ -1,19 +1,21 @@
 package com.example.simplemobileauth;
 
+
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
+import org.json.JSONException;
+import org.json.JSONObject;
+import java.io.IOException;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -26,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
+
 
         emailEditText = findViewById(R.id.emailEditText);  // EditText for email input
         Button authenticateButton = findViewById(R.id.authenticateButton);
@@ -46,10 +49,9 @@ public class MainActivity extends AppCompatActivity {
                                 @Override
                                 public void onSuccess() {
                                     // On success, generate the token
-                                    String deviceId = "device123";
+                                    String deviceId = getDevice_Id();
                                     // Token expiry (30 minutes)
                                     String token = generateToken(email, deviceId);
-
                                     // Send token to server (you can call your server here)
                                     sendTokenToServer(token);
                                 }
@@ -66,45 +68,82 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-    // Validate email format using a simple regex (basic validation)
+    // Validate email format using a simple regex
     private boolean isValidEmail(String email) {
         return email != null && email.matches("^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$");
     }
 
+    private String getUserId(String email){
+        return String.valueOf(email.hashCode());
+
+    }
+    // Get device ID for demonstration purpose DeviceID is hardcoded,
+    private String getDevice_Id() {
+        return "device123";
+    }
     private String generateToken(String userId, String deviceId) {
         long expiryTime = System.currentTimeMillis() + (30 * 60 * 1000); // Token valid for 30 minutes
-
-        // Simple token format: userId|deviceId|expiryTimestamp
         String tokenData = userId + "|" + deviceId + "|" + expiryTime;
         return tokenData;
     }
 
 
     private void sendTokenToServer(String token) {
-        // Retrofit setup
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://localhost:3000") // Use your server's URL
-                .addConverterFactory(GsonConverterFactory.create())
+        // Get the email from the input field
+        String email = emailEditText.getText().toString().trim();
+
+        OkHttpClient client = new OkHttpClient();
+
+        // JSON body
+        JSONObject jsonBody = new JSONObject();
+        try {
+            jsonBody.put("email", email);
+            jsonBody.put("token", token);
+        } catch (JSONException e) {
+            Log.e("TokenDebug", "JSON creation error", e);
+            return;
+        }
+
+        MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+        RequestBody body = RequestBody.create(JSON, jsonBody.toString());
+
+
+        String url = "http://10.0.2.2:3000/validateToken";
+
+        Request request = new Request.Builder()
+                .url(url)
+                .post(body)
                 .build();
 
-//        ApiService apiService = retrofit.create(ApiService.class);
-//
-//        // Make the API call to validate the token
-//        Call<Void> call = apiService.validateToken(new Token(token));
-//        call.enqueue(new Callback<Void>() {
-//            @Override
-//            public void onResponse(Call<Void> call, Response<Void> response) {
-//                if (response.isSuccessful()) {
-//                    Toast.makeText(MainActivity.this, "Token validated successfully", Toast.LENGTH_SHORT).show();
-//                } else {
-//                    Toast.makeText(MainActivity.this, "Token validation failed: " + response.message(), Toast.LENGTH_SHORT).show();
-//                }
-//            }
-//
-//            @Override
-//            public void onFailure(Call<Void> call, Throwable t) {
-//                Toast.makeText(MainActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-//            }
-//        });
+        client.newCall(request).enqueue(new okhttp3.Callback() {
+            @Override
+            public void onFailure(okhttp3.Call call, IOException e) {
+                runOnUiThread(() -> {
+                    Toast.makeText(MainActivity.this, "Network error: " + e.getMessage(),
+                            Toast.LENGTH_SHORT).show();
+                });
+            }
+
+            @Override
+            public void onResponse(okhttp3.Call call, okhttp3.Response response) throws IOException {
+                final String responseBody = response.body().string();
+
+                runOnUiThread(() -> {
+                    if (response.isSuccessful()) {
+                        try {
+                            JSONObject jsonResponse = new JSONObject(responseBody);
+                            String serverMessage = jsonResponse.optString("message", "Unknown response");
+
+                            Toast.makeText(MainActivity.this, serverMessage, Toast.LENGTH_SHORT).show();
+                        } catch (JSONException e) {
+                            Toast.makeText(MainActivity.this, "Invalid server response", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(MainActivity.this, "Authentication failed: " + responseBody,
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
     }
 }

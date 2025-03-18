@@ -1,29 +1,25 @@
 package com.example.simplemobileauth;
 import android.content.Context;
-import android.os.Build;
 import android.util.Log;
-
-
 import androidx.annotation.NonNull;
 import androidx.biometric.BiometricManager;
 import androidx.biometric.BiometricPrompt;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
-import java.util.UUID;
 import java.util.concurrent.Executor;
 
 public class BiometricAuthManager {
-
+    // Executor to handle authentication callbacks on the main thread
     private final Executor executor;
     private final BiometricPrompt.AuthenticationCallback authCallback;
     private final Context context;
     private AuthCallback userCallback;
-
+    // Interface for handling authentication results
     public interface AuthCallback {
         void onSuccess();
         void onFailure(String errorMessage);
     }
-
+    // Constructor to initialize biometric authentication components
     public BiometricAuthManager(FragmentActivity activity) {
         this.context = activity.getApplicationContext();
         this.executor = ContextCompat.getMainExecutor(activity);
@@ -74,7 +70,7 @@ public class BiometricAuthManager {
                 callback.onFailure("Biometric authentication not available on this device");
             }
         }
-
+        // Configure the biometric prompt UI and behavior
         BiometricPrompt.PromptInfo promptInfo = new BiometricPrompt.PromptInfo.Builder()
                 .setTitle(title)
                 .setSubtitle(subtitle)
