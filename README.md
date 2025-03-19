@@ -35,8 +35,7 @@ This project is a mobile application that implements secure device authenticatio
 ### Mobile App Setup
 1. Clone the repository:
    ```sh
-   git clone https://github.com/your-repo/mobile-authentication.git
-   cd mobile-authentication
+   git clone https://github.com/Kunikameshram/SimpleAuthentication.git
    ```
 2. Open the project in **Android Studio**.
 3. Connect an **Android device** or use an **emulator** with biometric authentication enabled.
@@ -53,7 +52,7 @@ This project is a mobile application that implements secure device authenticatio
    ```
 3. Start the server:
    ```sh
-   node server.js
+   node index.js
    ```
    The server will run on `http://10.0.2.2:3000` (for emulator) or `http://localhost:3000`.
 
